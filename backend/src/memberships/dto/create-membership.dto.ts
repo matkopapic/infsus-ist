@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsString, MaxLength, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsNumber, IsString, MaxLength, Min } from 'class-validator';
 
 export class CreateMembershipDto {
   @IsString()
@@ -9,7 +9,10 @@ export class CreateMembershipDto {
 
   @IsString()
   @IsNotEmpty()
-  duration: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  durationInDays: number;
 
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })

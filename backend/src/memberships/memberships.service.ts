@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { currentDateKey } from '../common/utils/current-date-key';
+import { currentDateString } from '../common/utils/current-date-string';
 import { CreateMembershipDto } from './dto/create-membership.dto';
 import { ListMembershipsQueryDto } from './dto/list-memberships-query.dto';
 import { UpdateMembershipDto } from './dto/update-membership.dto';
@@ -54,7 +54,7 @@ export class MembershipsService {
 
     const usageCount = await this.membershipsRepository.countActiveUsages(
       id,
-      currentDateKey(),
+      currentDateString(),
     );
 
     if (usageCount > 0) {

@@ -90,7 +90,7 @@ export class ReservationsRepository {
     memberId: string,
     trainingId: string,
     trainingTime: Date,
-    duration: string,
+    durationInMinutes: number,
   ) {
     return this.reservationsRepository
       .createQueryBuilder('reservation')
@@ -99,27 +99,27 @@ export class ReservationsRepository {
       .where('member.member_id = :memberId', { memberId })
       .andWhere('training.training_id != :trainingId', { trainingId })
       .andWhere(
-        `training.training_time < (:trainingTime::timestamp + CAST(:duration AS interval))
-         AND (training.training_time + training.duration) > :trainingTime`,
+        `training.training_time < (:trainingTime + make_interval(mins => :durationInMinutes))
+         AND (training.training_time + make_interval(mins => training.duration_in_minutes)) > :trainingTime`,
         {
           trainingTime,
-          duration,
+          durationInMinutes,
         },
       )
       .getExists();
   }
 
-  async hasActiveMembership(memberId: string, currentDateKey: number) {
+  async hasActiveMembership(memberId: string, currentDate: string) {
     return this.memberMembershipsRepository
       .createQueryBuilder('memberMembership')
       .innerJoin('memberMembership.member', 'member')
       .innerJoin('memberMembership.payment', 'payment')
       .where('member.member_id = :memberId', { memberId })
-      .andWhere('memberMembership.start_date <= :currentDateKey', {
-        currentDateKey,
+      .andWhere('memberMembership.start_date <= :currentDate', {
+        currentDate,
       })
-      .andWhere('memberMembership.end_date >= :currentDateKey', {
-        currentDateKey,
+      .andWhere('memberMembership.end_date >= :currentDate', {
+        currentDate,
       })
       .andWhere('memberMembership.status = :activeStatus', { activeStatus: 1 })
       .andWhere('LOWER(payment.status) = :paidStatus', { paidStatus: 'paid' })

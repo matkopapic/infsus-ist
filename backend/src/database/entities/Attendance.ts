@@ -4,10 +4,10 @@ import { GymMember } from "./GymMember";
 @Index("attendance_pkey", ["attendanceId"], { unique: true })
 @Entity("attendance")
 export class Attendance {
-  @Column("timestamp without time zone", { name: "entry_time" })
+  @Column("timestamp with time zone", { name: "entry_time" })
   entryTime: Date;
 
-  @Column("timestamp without time zone", { name: "exit_time" })
+  @Column("timestamp with time zone", { name: "exit_time" })
   exitTime: Date;
 
   @Column("uuid", {

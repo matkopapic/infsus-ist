@@ -63,7 +63,7 @@ export class TrainingsService {
     const hasOverlap = await this.trainingsRepository.hasTrainerOverlap(
       body.trainerId,
       trainingTime,
-      body.duration,
+      body.durationInMinutes,
     );
 
     if (hasOverlap) {
@@ -72,7 +72,7 @@ export class TrainingsService {
 
     const training = this.trainingsRepository.create({
       capacity: body.capacity,
-      duration: body.duration,
+      durationInMinutes: body.durationInMinutes,
       name: body.name,
       trainingTime,
       trainer,
@@ -103,7 +103,7 @@ export class TrainingsService {
     const nextTrainingTime = body.trainingTime
       ? new Date(body.trainingTime)
       : training.trainingTime;
-    const nextDuration = body.duration ?? this.normalizeDuration(training.duration);
+    const nextDuration = body.durationInMinutes ?? training.durationInMinutes;
     const nextTrainerId = body.trainerId ?? training.trainer.trainerId;
 
     if (nextTrainingTime <= new Date()) {
@@ -133,8 +133,8 @@ export class TrainingsService {
       training.capacity = body.capacity;
     }
 
-    if (body.duration !== undefined) {
-      training.duration = body.duration;
+    if (body.durationInMinutes !== undefined) {
+      training.durationInMinutes = body.durationInMinutes;
     }
 
     if (body.name !== undefined) {
@@ -158,34 +158,5 @@ export class TrainingsService {
     }
 
     await this.trainingsRepository.deleteById(id);
-  }
-
-  private normalizeDuration(duration: unknown) {
-    if (typeof duration === 'string') {
-      return duration;
-    }
-
-    if (!duration || typeof duration !== 'object') {
-      return '0 minutes';
-    }
-
-    const interval = duration as Record<string, unknown>;
-    const units: Array<[string, string]> = [
-      ['years', 'years'],
-      ['months', 'months'],
-      ['days', 'days'],
-      ['hours', 'hours'],
-      ['minutes', 'minutes'],
-      ['seconds', 'seconds'],
-    ];
-
-    const parts = units
-      .map(([key, label]) => {
-        const value = Number(interval[key] ?? 0);
-        return value > 0 ? `${value} ${label}` : null;
-      })
-      .filter((value): value is string => value !== null);
-
-    return parts.length > 0 ? parts.join(' ') : '0 minutes';
   }
 }

@@ -23,7 +23,7 @@ CREATE TABLE APP_USER
   date_of_birth DATE NOT NULL,
   user_id UUID DEFAULT gen_random_uuid() NOT NULL,
   email VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (user_id),
   UNIQUE (email)
 );
@@ -47,18 +47,19 @@ CREATE TABLE MEMBERSHIP
 (
   membership_id UUID DEFAULT gen_random_uuid() NOT NULL,
   name VARCHAR(255) NOT NULL,
-  duration INTERVAL NOT NULL,
-  price FLOAT NOT NULL,
-  PRIMARY KEY (membership_id)
+  duration_in_days INT NOT NULL CHECK (duration_in_days > 0),
+  price NUMERIC(10, 2) NOT NULL CHECK (price > 0),
+  PRIMARY KEY (membership_id),
+  UNIQUE (name)
 );
 
 CREATE TABLE PAYMENT
 (
-  created_at TIMESTAMP NOT NULL,
-  status VARCHAR(255) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  status VARCHAR(32) NOT NULL CHECK (LOWER(status) IN ('pending', 'paid', 'failed', 'cancelled')),
   payment_id UUID DEFAULT gen_random_uuid() NOT NULL,
   user_id UUID NOT NULL,
-  amount FLOAT NOT NULL,
+  amount NUMERIC(10, 2) NOT NULL CHECK (amount > 0),
   PRIMARY KEY (payment_id),
   FOREIGN KEY (user_id) REFERENCES APP_USER(user_id)
 );
@@ -74,10 +75,10 @@ CREATE TABLE EQUIPMENT
 
 CREATE TABLE TRAINING
 (
-  capacity INT NOT NULL,
+  capacity INT NOT NULL CHECK (capacity >= 1),
   name VARCHAR(255) NOT NULL,
-  training_time TIMESTAMP NOT NULL,
-  duration INTERVAL NOT NULL,
+  training_time TIMESTAMPTZ NOT NULL,
+  duration_in_minutes INT NOT NULL CHECK (duration_in_minutes > 0),
   training_id UUID DEFAULT gen_random_uuid() NOT NULL,
   trainer_id UUID NOT NULL,
   PRIMARY KEY (training_id),
@@ -94,11 +95,13 @@ CREATE TABLE PERK
 CREATE TABLE RESERVATION
 (
   reservation_id UUID DEFAULT gen_random_uuid() NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   training_id UUID NOT NULL,
   member_id UUID NOT NULL,
   PRIMARY KEY (reservation_id),
   FOREIGN KEY (training_id) REFERENCES TRAINING(training_id),
-  FOREIGN KEY (member_id) REFERENCES GYM_MEMBER(member_id)
+  FOREIGN KEY (member_id) REFERENCES GYM_MEMBER(member_id),
+  UNIQUE (training_id, member_id)
 );
 
 CREATE TABLE ADMINISTRATOR
@@ -110,7 +113,7 @@ CREATE TABLE ADMINISTRATOR
 
 CREATE TABLE REPORT
 (
-  report_time TIMESTAMP NOT NULL,
+  report_time TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   report_file VARCHAR(255) NOT NULL,
   report_id UUID DEFAULT gen_random_uuid() NOT NULL,
   admin_id UUID NOT NULL,
@@ -120,12 +123,13 @@ CREATE TABLE REPORT
 
 CREATE TABLE ATTENDANCE
 (
-  entry_time TIMESTAMP NOT NULL,
-  exit_time TIMESTAMP NOT NULL,
+  entry_time TIMESTAMPTZ NOT NULL,
+  exit_time TIMESTAMPTZ NOT NULL,
   attendance_id UUID DEFAULT gen_random_uuid() NOT NULL,
   member_id UUID NOT NULL,
   PRIMARY KEY (attendance_id),
-  FOREIGN KEY (member_id) REFERENCES GYM_MEMBER(member_id)
+  FOREIGN KEY (member_id) REFERENCES GYM_MEMBER(member_id),
+  CHECK (exit_time >= entry_time)
 );
 
 CREATE TABLE SERVICE
@@ -140,9 +144,9 @@ CREATE TABLE SERVICE
 
 CREATE TABLE MEMBER_MEMBERSHIP
 (
-  status INT NOT NULL,
-  start_date INT NOT NULL,
-  end_date INT NOT NULL,
+  status INT NOT NULL CHECK (status IN (0, 1)),
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
   ownership_id UUID DEFAULT gen_random_uuid() NOT NULL,
   membership_id UUID NOT NULL,
   member_id UUID NOT NULL,
@@ -150,7 +154,8 @@ CREATE TABLE MEMBER_MEMBERSHIP
   PRIMARY KEY (ownership_id),
   FOREIGN KEY (membership_id) REFERENCES MEMBERSHIP(membership_id),
   FOREIGN KEY (member_id) REFERENCES GYM_MEMBER(member_id),
-  FOREIGN KEY (payment_id) REFERENCES PAYMENT(payment_id)
+  FOREIGN KEY (payment_id) REFERENCES PAYMENT(payment_id),
+  CHECK (end_date >= start_date)
 );
 
 CREATE TABLE TRAINING_EQUIPMENT
@@ -170,3 +175,13 @@ CREATE TABLE MEMBERSHIP_PERKS
   FOREIGN KEY (perk_id) REFERENCES PERK(perk_id),
   FOREIGN KEY (membership_id) REFERENCES MEMBERSHIP(membership_id)
 );
+
+CREATE INDEX idx_payment_user_id ON PAYMENT(user_id);
+CREATE INDEX idx_training_trainer_id ON TRAINING(trainer_id);
+CREATE INDEX idx_reservation_training_id ON RESERVATION(training_id);
+CREATE INDEX idx_reservation_member_id ON RESERVATION(member_id);
+CREATE INDEX idx_attendance_member_id ON ATTENDANCE(member_id);
+CREATE INDEX idx_service_equipment_id ON SERVICE(equipment_id);
+CREATE INDEX idx_member_membership_membership_id ON MEMBER_MEMBERSHIP(membership_id);
+CREATE INDEX idx_member_membership_member_id ON MEMBER_MEMBERSHIP(member_id);
+CREATE INDEX idx_member_membership_payment_id ON MEMBER_MEMBERSHIP(payment_id);

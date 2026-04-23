@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { currentDateKey } from '../common/utils/current-date-key';
+import { currentDateString } from '../common/utils/current-date-string';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { ReservationsRepository } from './reservations.repository';
 
@@ -46,7 +46,7 @@ export class ReservationsService {
       body.memberId,
       trainingId,
       training.trainingTime,
-      this.normalizeDuration(training.duration),
+      training.durationInMinutes,
     );
 
     if (hasOverlap) {
@@ -55,7 +55,7 @@ export class ReservationsService {
 
     const hasActiveMembership = await this.reservationsRepository.hasActiveMembership(
       body.memberId,
-      currentDateKey(),
+      currentDateString(),
     );
 
     if (!hasActiveMembership) {
@@ -97,34 +97,5 @@ export class ReservationsService {
     }
 
     return training;
-  }
-
-  private normalizeDuration(duration: unknown) {
-    if (typeof duration === 'string') {
-      return duration;
-    }
-
-    if (!duration || typeof duration !== 'object') {
-      return '0 minutes';
-    }
-
-    const interval = duration as Record<string, unknown>;
-    const units: Array<[string, string]> = [
-      ['years', 'years'],
-      ['months', 'months'],
-      ['days', 'days'],
-      ['hours', 'hours'],
-      ['minutes', 'minutes'],
-      ['seconds', 'seconds'],
-    ];
-
-    const parts = units
-      .map(([key, label]) => {
-        const value = Number(interval[key] ?? 0);
-        return value > 0 ? `${value} ${label}` : null;
-      })
-      .filter((value): value is string => value !== null);
-
-    return parts.length > 0 ? parts.join(' ') : '0 minutes';
   }
 }

@@ -20,11 +20,11 @@ export class Training {
   @Column("character varying", { name: "name", length: 255 })
   name: string;
 
-  @Column("timestamp without time zone", { name: "training_time" })
+  @Column("timestamp with time zone", { name: "training_time" })
   trainingTime: Date;
 
-  @Column("interval", { name: "duration" })
-  duration: any;
+  @Column("integer", { name: "duration_in_minutes" })
+  durationInMinutes: number;
 
   @Column("uuid", {
     primary: true,

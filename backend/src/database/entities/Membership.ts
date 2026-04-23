@@ -6,6 +6,7 @@ import {
   ManyToMany,
   OneToMany,
 } from "typeorm";
+import { numericTransformer } from "../../common/database/numeric.transformer";
 import { MemberMembership } from "./MemberMembership";
 import { Perk } from "./Perk";
 
@@ -22,10 +23,15 @@ export class Membership {
   @Column("character varying", { name: "name", length: 255 })
   name: string;
 
-  @Column("interval", { name: "duration" })
-  duration: any;
+  @Column("integer", { name: "duration_in_days" })
+  durationInDays: number;
 
-  @Column("double precision", { name: "price", precision: 53 })
+  @Column("numeric", {
+    name: "price",
+    precision: 10,
+    scale: 2,
+    transformer: numericTransformer,
+  })
   price: number;
 
   @OneToMany(

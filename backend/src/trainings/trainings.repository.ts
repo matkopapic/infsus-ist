@@ -97,7 +97,7 @@ export class TrainingsRepository {
   async hasTrainerOverlap(
     trainerId: string,
     trainingTime: Date,
-    duration: string,
+    durationInMinutes: number,
     excludedTrainingId?: string,
   ) {
     const queryBuilder = this.trainingsRepository
@@ -105,11 +105,11 @@ export class TrainingsRepository {
       .innerJoin('training.trainer', 'trainer')
       .where('trainer.trainer_id = :trainerId', { trainerId })
       .andWhere(
-        `training.training_time < (:trainingTime::timestamp + CAST(:duration AS interval))
-         AND (training.training_time + training.duration) > :trainingTime`,
+        `training.training_time < (:trainingTime + make_interval(mins => :durationInMinutes))
+         AND (training.training_time + make_interval(mins => training.duration_in_minutes)) > :trainingTime`,
         {
           trainingTime,
-          duration,
+          durationInMinutes,
         },
       );
 

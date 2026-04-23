@@ -12,6 +12,9 @@ export class Reservation {
   })
   reservationId: string;
 
+  @Column("timestamp with time zone", { name: "created_at" })
+  createdAt: Date;
+
   @ManyToOne(() => GymMember, (gymMember) => gymMember.reservations)
   @JoinColumn([{ name: "member_id", referencedColumnName: "memberId" }])
   member: GymMember;

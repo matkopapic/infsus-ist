@@ -18,9 +18,10 @@ export class CreateTrainingDto {
   @IsISO8601()
   trainingTime: string;
 
-  @IsString()
-  @IsNotEmpty()
-  duration: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  durationInMinutes: number;
 
   @Type(() => Number)
   @IsInt()
