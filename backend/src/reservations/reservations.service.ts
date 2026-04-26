@@ -1,11 +1,7 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { currentDateString } from '../common/utils/current-date-string';
 import { CreateReservationDto } from './dto/create-reservation.dto';
+import { ReservationsErrors } from './reservations.errors';
 import { ReservationsRepository } from './reservations.repository';
 
 @Injectable()
@@ -22,7 +18,7 @@ export class ReservationsService {
     const member = await this.reservationsRepository.findMemberById(body.memberId);
 
     if (!member) {
-      throw new BadRequestException('Član ne postoji');
+      throw ReservationsErrors.memberNotFound();
     }
 
     const reservationCount = await this.reservationsRepository.countByTrainingId(
@@ -30,7 +26,7 @@ export class ReservationsService {
     );
 
     if (reservationCount >= training.capacity) {
-      throw new ConflictException('Trening je popunjen');
+      throw ReservationsErrors.trainingFull();
     }
 
     const existingReservation = await this.reservationsRepository.findExistingForTrainingAndMember(
@@ -39,7 +35,7 @@ export class ReservationsService {
     );
 
     if (existingReservation) {
-      throw new ConflictException('Već imate rezervaciju za ovaj termin');
+      throw ReservationsErrors.reservationExists();
     }
 
     const hasOverlap = await this.reservationsRepository.hasOverlappingReservation(
@@ -50,7 +46,7 @@ export class ReservationsService {
     );
 
     if (hasOverlap) {
-      throw new ConflictException('Imate drugu rezervaciju u istom terminu');
+      throw ReservationsErrors.reservationOverlap();
     }
 
     const hasActiveMembership = await this.reservationsRepository.hasActiveMembership(
@@ -59,7 +55,7 @@ export class ReservationsService {
     );
 
     if (!hasActiveMembership) {
-      throw new ConflictException('Nemate važeću članarinu');
+      throw ReservationsErrors.membershipInactive();
     }
 
     const reservation = this.reservationsRepository.create({
@@ -74,7 +70,7 @@ export class ReservationsService {
     const training = await this.assertTrainingExists(trainingId);
 
     if (training.trainingTime <= new Date()) {
-      throw new ConflictException('Rezervacija se ne može otkazati nakon početka treninga');
+      throw ReservationsErrors.reservationTooLateToCancel();
     }
 
     const reservation = await this.reservationsRepository.findByIdForTraining(
@@ -83,7 +79,7 @@ export class ReservationsService {
     );
 
     if (!reservation) {
-      throw new NotFoundException('Rezervacija nije pronađena');
+      throw ReservationsErrors.reservationNotFound();
     }
 
     await this.reservationsRepository.deleteById(reservationId);
@@ -93,7 +89,7 @@ export class ReservationsService {
     const training = await this.reservationsRepository.findTrainingById(trainingId);
 
     if (!training) {
-      throw new NotFoundException('Trening nije pronađen');
+      throw ReservationsErrors.trainingNotFound();
     }
 
     return training;

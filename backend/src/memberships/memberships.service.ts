@@ -1,8 +1,9 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { currentDateString } from '../common/utils/current-date-string';
 import { CreateMembershipDto } from './dto/create-membership.dto';
 import { ListMembershipsQueryDto } from './dto/list-memberships-query.dto';
 import { UpdateMembershipDto } from './dto/update-membership.dto';
+import { MembershipsErrors } from './memberships.errors';
 import { MembershipsRepository } from './memberships.repository';
 
 @Injectable()
@@ -17,7 +18,7 @@ export class MembershipsService {
     const membership = await this.membershipsRepository.findById(id);
 
     if (!membership) {
-      throw new NotFoundException('Članstvo nije pronađeno');
+      throw MembershipsErrors.membershipNotFound();
     }
 
     return membership;
@@ -27,7 +28,7 @@ export class MembershipsService {
     const existingMembership = await this.membershipsRepository.findByName(body.name);
 
     if (existingMembership) {
-      throw new ConflictException('Članstvo s tim nazivom već postoji');
+      throw MembershipsErrors.membershipNameExists();
     }
 
     const membership = this.membershipsRepository.create(body);
@@ -41,7 +42,7 @@ export class MembershipsService {
       const existingMembership = await this.membershipsRepository.findByName(body.name);
 
       if (existingMembership && existingMembership.membershipId !== id) {
-        throw new ConflictException('Članstvo s tim nazivom već postoji');
+        throw MembershipsErrors.membershipNameExists();
       }
     }
 
@@ -58,7 +59,7 @@ export class MembershipsService {
     );
 
     if (usageCount > 0) {
-      throw new ConflictException('Članstvo se koristi i ne može se obrisati');
+      throw MembershipsErrors.membershipInUse();
     }
 
     await this.membershipsRepository.deleteById(id);

@@ -1,13 +1,9 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Trainer } from '../database/entities/Trainer';
 import { CreateTrainingDto } from './dto/create-training.dto';
+import { TrainingsErrors } from './trainings.errors';
 import { ListTrainingsQueryDto } from './dto/list-trainings-query.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
 import { TrainingsRepository } from './trainings.repository';
@@ -36,7 +32,7 @@ export class TrainingsService {
     const training = await this.trainingsRepository.findByIdWithRelations(id);
 
     if (!training) {
-      throw new NotFoundException('Trening nije pronađen');
+      throw TrainingsErrors.trainingNotFound();
     }
 
     return {
@@ -51,13 +47,13 @@ export class TrainingsService {
     });
 
     if (!trainer) {
-      throw new BadRequestException('Trener ne postoji');
+      throw TrainingsErrors.trainerNotFound();
     }
 
     const trainingTime = new Date(body.trainingTime);
 
     if (trainingTime <= new Date()) {
-      throw new ConflictException('Trening se ne može kreirati u prošlosti');
+      throw TrainingsErrors.trainingInPast();
     }
 
     const hasOverlap = await this.trainingsRepository.hasTrainerOverlap(
@@ -67,7 +63,7 @@ export class TrainingsService {
     );
 
     if (hasOverlap) {
-      throw new ConflictException('Trener već ima trening u tom terminu');
+      throw TrainingsErrors.trainerOverlap();
     }
 
     const training = this.trainingsRepository.create({
@@ -85,7 +81,7 @@ export class TrainingsService {
     const training = await this.trainingsRepository.findByIdForUpdate(id);
 
     if (!training) {
-      throw new NotFoundException('Trening nije pronađen');
+      throw TrainingsErrors.trainingNotFound();
     }
 
     if (body.trainerId) {
@@ -94,7 +90,7 @@ export class TrainingsService {
       });
 
       if (!trainer) {
-        throw new BadRequestException('Trener ne postoji');
+        throw TrainingsErrors.trainerNotFound();
       }
 
       training.trainer = trainer;
@@ -107,15 +103,13 @@ export class TrainingsService {
     const nextTrainerId = body.trainerId ?? training.trainer.trainerId;
 
     if (nextTrainingTime <= new Date()) {
-      throw new ConflictException('Trening se ne može kreirati u prošlosti');
+      throw TrainingsErrors.trainingInPast();
     }
 
     const reservationCount = await this.trainingsRepository.countReservations(id);
 
     if (body.capacity !== undefined && body.capacity < reservationCount) {
-      throw new ConflictException(
-        'Kapacitet ne može biti manji od broja postojećih rezervacija',
-      );
+      throw TrainingsErrors.trainingCapacityTooSmall();
     }
 
     const hasOverlap = await this.trainingsRepository.hasTrainerOverlap(
@@ -126,7 +120,7 @@ export class TrainingsService {
     );
 
     if (hasOverlap) {
-      throw new ConflictException('Trener već ima trening u tom terminu');
+      throw TrainingsErrors.trainerOverlap();
     }
 
     if (body.capacity !== undefined) {
@@ -154,7 +148,7 @@ export class TrainingsService {
     const reservationCount = await this.trainingsRepository.countReservations(id);
 
     if (reservationCount > 0) {
-      throw new ConflictException('Trening ima rezervacije');
+      throw TrainingsErrors.trainingHasReservations();
     }
 
     await this.trainingsRepository.deleteById(id);
