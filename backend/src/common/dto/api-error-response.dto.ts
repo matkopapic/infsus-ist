@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ApiErrorResponseDto {
-  @ApiProperty({ example: 409 })
+  @ApiProperty({ example: 400 })
   statusCode: number;
 
-  @ApiProperty({ example: 'Trener već ima trening u tom terminu' })
+  @ApiProperty({ example: 'An error has occurred because reasons.' })
   message: string;
 
-  @ApiProperty({ example: 'Conflict' })
+  @ApiProperty({ example: 'Bad Request' })
   error: string;
 }
