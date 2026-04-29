@@ -28,18 +28,23 @@ import { ListMembershipsQueryDto } from './dto/list-memberships-query.dto';
 import { MembershipListResponseDto } from './dto/membership-list-response.dto';
 import { MembershipResponseDto } from './dto/membership-response.dto';
 import { UpdateMembershipDto } from './dto/update-membership.dto';
+import { MembershipsMapper } from './memberships.mapper';
 
 @ApiTags('Memberships')
 @Controller('memberships')
 export class MembershipsController {
-  constructor(private readonly membershipsService: MembershipsService) {}
+  constructor(
+    private readonly membershipsService: MembershipsService,
+    private readonly membershipsMapper: MembershipsMapper,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'List memberships' })
   @ApiOkResponse({ type: MembershipListResponseDto })
   @ApiBadRequestResponse({ type: ApiErrorResponseDto })
-  findAll(@Query() query: ListMembershipsQueryDto) {
-    return this.membershipsService.findAll(query);
+  async findAll(@Query() query: ListMembershipsQueryDto) {
+    const result = await this.membershipsService.findAll(query);
+    return this.membershipsMapper.toListResponseDto(result.data, result.total);
   }
 
   @Get(':id')
@@ -48,8 +53,9 @@ export class MembershipsController {
   @ApiOkResponse({ type: MembershipResponseDto })
   @ApiBadRequestResponse({ type: ApiErrorResponseDto })
   @ApiNotFoundResponse({ type: ApiErrorResponseDto })
-  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.membershipsService.findOne(id);
+  async findOne(@Param('id', new ParseUUIDPipe()) id: string) {
+    const membership = await this.membershipsService.findOne(id);
+    return this.membershipsMapper.toResponseDto(membership);
   }
 
   @Post()
@@ -57,8 +63,9 @@ export class MembershipsController {
   @ApiCreatedResponse({ type: MembershipResponseDto })
   @ApiBadRequestResponse({ type: ApiErrorResponseDto })
   @ApiConflictResponse({ type: ApiErrorResponseDto })
-  create(@Body() body: CreateMembershipDto) {
-    return this.membershipsService.create(body);
+  async create(@Body() body: CreateMembershipDto) {
+    const membership = await this.membershipsService.create(body);
+    return this.membershipsMapper.toResponseDto(membership);
   }
 
   @Put(':id')
@@ -68,11 +75,12 @@ export class MembershipsController {
   @ApiBadRequestResponse({ type: ApiErrorResponseDto })
   @ApiNotFoundResponse({ type: ApiErrorResponseDto })
   @ApiConflictResponse({ type: ApiErrorResponseDto })
-  update(
+  async update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() body: UpdateMembershipDto,
   ) {
-    return this.membershipsService.update(id, body);
+    const membership = await this.membershipsService.update(id, body);
+    return this.membershipsMapper.toResponseDto(membership);
   }
 
   @Delete(':id')

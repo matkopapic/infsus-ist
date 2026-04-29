@@ -63,6 +63,17 @@ export class ReservationsRepository {
     return this.reservationsRepository.save(reservation);
   }
 
+  findByIdWithRelations(reservationId: string) {
+    return this.reservationsRepository.findOne({
+      where: { reservationId },
+      relations: {
+        member: {
+          member: true,
+        },
+      },
+    });
+  }
+
   countByTrainingId(trainingId: string) {
     return this.reservationsRepository.count({
       where: {

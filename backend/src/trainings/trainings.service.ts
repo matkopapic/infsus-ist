@@ -74,7 +74,8 @@ export class TrainingsService {
       trainer,
     });
 
-    return this.trainingsRepository.save(training);
+    const savedTraining = await this.trainingsRepository.save(training);
+    return this.findOne(savedTraining.trainingId);
   }
 
   async update(id: string, body: UpdateTrainingDto) {
@@ -139,7 +140,8 @@ export class TrainingsService {
       training.trainingTime = new Date(body.trainingTime);
     }
 
-    return this.trainingsRepository.save(training);
+    const savedTraining = await this.trainingsRepository.save(training);
+    return this.findOne(savedTraining.trainingId);
   }
 
   async remove(id: string) {

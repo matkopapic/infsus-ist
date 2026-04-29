@@ -28,18 +28,23 @@ import { ListTrainingsQueryDto } from './dto/list-trainings-query.dto';
 import { TrainingListResponseDto } from './dto/training-list-response.dto';
 import { TrainingResponseDto } from './dto/training-response.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
+import { TrainingsMapper } from './trainings.mapper';
 
 @ApiTags('Trainings')
 @Controller('trainings')
 export class TrainingsController {
-  constructor(private readonly trainingsService: TrainingsService) {}
+  constructor(
+    private readonly trainingsService: TrainingsService,
+    private readonly trainingsMapper: TrainingsMapper,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'List trainings' })
   @ApiOkResponse({ type: TrainingListResponseDto })
   @ApiBadRequestResponse({ type: ApiErrorResponseDto })
-  findAll(@Query() query: ListTrainingsQueryDto) {
-    return this.trainingsService.findAll(query);
+  async findAll(@Query() query: ListTrainingsQueryDto) {
+    const result = await this.trainingsService.findAll(query);
+    return this.trainingsMapper.toListResponseDto(result.data, result.total);
   }
 
   @Get(':id')
@@ -48,8 +53,9 @@ export class TrainingsController {
   @ApiOkResponse({ type: TrainingResponseDto })
   @ApiBadRequestResponse({ type: ApiErrorResponseDto })
   @ApiNotFoundResponse({ type: ApiErrorResponseDto })
-  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.trainingsService.findOne(id);
+  async findOne(@Param('id', new ParseUUIDPipe()) id: string) {
+    const training = await this.trainingsService.findOne(id);
+    return this.trainingsMapper.toResponseDto(training);
   }
 
   @Post()
@@ -57,8 +63,9 @@ export class TrainingsController {
   @ApiCreatedResponse({ type: TrainingResponseDto })
   @ApiBadRequestResponse({ type: ApiErrorResponseDto })
   @ApiConflictResponse({ type: ApiErrorResponseDto })
-  create(@Body() body: CreateTrainingDto) {
-    return this.trainingsService.create(body);
+  async create(@Body() body: CreateTrainingDto) {
+    const training = await this.trainingsService.create(body);
+    return this.trainingsMapper.toResponseDto(training);
   }
 
   @Put(':id')
@@ -68,11 +75,12 @@ export class TrainingsController {
   @ApiBadRequestResponse({ type: ApiErrorResponseDto })
   @ApiNotFoundResponse({ type: ApiErrorResponseDto })
   @ApiConflictResponse({ type: ApiErrorResponseDto })
-  update(
+  async update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() body: UpdateTrainingDto,
   ) {
-    return this.trainingsService.update(id, body);
+    const training = await this.trainingsService.update(id, body);
+    return this.trainingsMapper.toResponseDto(training);
   }
 
   @Delete(':id')

@@ -5,6 +5,7 @@ import { MemberMembership } from '../database/entities/MemberMembership';
 import { Reservation } from '../database/entities/Reservation';
 import { Training } from '../database/entities/Training';
 import { ReservationsController } from './reservations.controller';
+import { ReservationsMapper } from './reservations.mapper';
 import { ReservationsRepository } from './reservations.repository';
 import { ReservationsService } from './reservations.service';
 
@@ -18,6 +19,6 @@ import { ReservationsService } from './reservations.service';
     ]),
   ],
   controllers: [ReservationsController],
-  providers: [ReservationsService, ReservationsRepository],
+  providers: [ReservationsService, ReservationsRepository, ReservationsMapper],
 })
 export class ReservationsModule {}

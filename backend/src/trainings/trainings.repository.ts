@@ -76,6 +76,10 @@ export class TrainingsRepository {
     });
   }
 
+  findByIdOrFailingResponse(trainingId: string) {
+    return this.findByIdWithRelations(trainingId);
+  }
+
   create(data: Partial<Training>) {
     return this.trainingsRepository.create(data);
   }
