@@ -7,8 +7,8 @@ export class MembershipResponseDto {
   @ApiProperty({ example: 'Standard 1 month' })
   name: string;
 
-  @ApiProperty({ example: '30 days' })
-  duration: string;
+  @ApiProperty({ example: 30 })
+  durationInDays: number;
 
   @ApiProperty({ example: 30 })
   price: number;
