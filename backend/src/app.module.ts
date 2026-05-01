@@ -1,9 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { DatabaseModule } from './database/database.module';
 import { Administrator } from './database/entities/Administrator';
 import { AppUser } from './database/entities/AppUser';
 import { Attendance } from './database/entities/Attendance';
@@ -21,6 +18,7 @@ import { Training } from './database/entities/Training';
 import { MembersModule } from './members/members.module';
 import { MembershipsModule } from './memberships/memberships.module';
 import { ReservationsModule } from './reservations/reservations.module';
+import { RootController } from './root.controller';
 import { TrainersModule } from './trainers/trainers.module';
 import { TrainingsModule } from './trainings/trainings.module';
 
@@ -72,14 +70,12 @@ const isEnabled = (value?: string) => value === 'true';
         };
       },
     }),
-    DatabaseModule,
     MembershipsModule,
     TrainingsModule,
     ReservationsModule,
     TrainersModule,
     MembersModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [RootController],
 })
 export class AppModule {}
