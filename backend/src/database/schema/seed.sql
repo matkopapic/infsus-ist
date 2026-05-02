@@ -1,14 +1,14 @@
 ROLLBACK;
 BEGIN;
 
-INSERT INTO APP_USER (name, date_of_birth, email, created_at) VALUES
-('Admin User', '1985-01-01', 'admin@gym.com', NOW()),
-('John Trainer', '1990-05-10', 'john.trainer@gym.com', NOW()),
-('Sarah Trainer', '1992-08-20', 'sarah.trainer@gym.com', NOW()),
-('Mike Member', '2000-03-15', 'mike@gym.com', NOW()),
-('Anna Member', '1998-07-22', 'anna@gym.com', NOW()),
-('Tom Member', '1995-11-30', 'tom@gym.com', NOW()),
-('Lisa Member', '2001-02-18', 'lisa@gym.com', NOW());
+INSERT INTO APP_USER (name, date_of_birth, email, password_hash, created_at) VALUES
+('Admin User', '1985-01-01', 'admin@gym.com', '$2b$10$Wb9aY19BOjQ8D2md8y/upu.ylBppFMh4PtzjGuOLOXSNIpSJJyFqG', NOW()),
+('John Trainer', '1990-05-10', 'john.trainer@gym.com', '$2b$10$70jk3ozXDV8oJi17rY9dMexN8rGqNbHTLXv5Mt0xwo8ZPbgu1f1/K', NOW()),
+('Sarah Trainer', '1992-08-20', 'sarah.trainer@gym.com', '$2b$10$8tIGM.t83/w3l07NZV2T/uRgJg7Nyt.Bbw.AAhMhdNKWO2cN.UISi', NOW()),
+('Mike Member', '2000-03-15', 'mike@gym.com', '$2b$10$WIqZ6HOVSSl.3BL4E310CuzsW/9gLV4.kLr2ZjZgxW7I9F.kcphpa', NOW()),
+('Anna Member', '1998-07-22', 'anna@gym.com', '$2b$10$.Fis0tlreoRdH6AkGQN.vupu4onIeHTBGkGnU0FhWuZ9ZPuEfyPCK', NOW()),
+('Tom Member', '1995-11-30', 'tom@gym.com', '$2b$10$TesZ4WpkiPEvpnEvjGhkKOQhMr2lEruLvWCyNpHtc7DK2pKD06UmK', NOW()),
+('Lisa Member', '2001-02-18', 'lisa@gym.com', '$2b$10$deyfH5Cjoh4LfAp2Yu4zbeYge4BaZsL/q73PVgRtNalydQpfbGeSG', NOW());
 
 INSERT INTO ADMINISTRATOR (admin_id)
 SELECT user_id FROM APP_USER WHERE email = 'admin@gym.com';

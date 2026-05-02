@@ -23,6 +23,7 @@ CREATE TABLE APP_USER
   date_of_birth DATE NOT NULL,
   user_id UUID DEFAULT gen_random_uuid() NOT NULL,
   email VARCHAR(255) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (user_id),
   UNIQUE (email)
