@@ -1,15 +1,26 @@
+import { NavLink } from 'react-router-dom';
 import styles from './Sidebar.module.css';
 
 function Sidebar() {
   return (
     <aside className={styles.sidebar}>
       <nav className={styles.nav}>
-        <a href="#" className={`${styles.navItem} ${styles.active}`}>
+        <NavLink
+          to="/trainings"
+          className={({ isActive }) =>
+            isActive ? `${styles.navItem} ${styles.active}` : styles.navItem
+          }
+        >
           Treninzi
-        </a>
-        <a href="#" className={styles.navItem}>
+        </NavLink>
+        <NavLink
+          to="/memberships"
+          className={({ isActive }) =>
+            isActive ? `${styles.navItem} ${styles.active}` : styles.navItem
+          }
+        >
           Članstva
-        </a>
+        </NavLink>
       </nav>
     </aside>
   );
