@@ -56,19 +56,10 @@ export class MembershipsRepository {
     return this.membershipsRepository.merge(membership, data);
   }
 
-  async countActiveUsages(membershipId: string, currentDate: string) {
+  async countUsages(membershipId: string) {
     return this.memberMembershipsRepository
       .createQueryBuilder('memberMembership')
-      .innerJoin('memberMembership.payment', 'payment')
-      .where('memberMembership.membership_id = :membershipId', { membershipId })
-      .andWhere('memberMembership.start_date <= :currentDate', {
-        currentDate,
-      })
-      .andWhere('memberMembership.end_date >= :currentDate', {
-        currentDate,
-      })
-      .andWhere('memberMembership.status = :activeStatus', { activeStatus: 1 })
-      .andWhere('LOWER(payment.status) = :paidStatus', { paidStatus: 'paid' })
+      .where('memberMembership.membership = :membershipId', { membershipId })
       .getCount();
   }
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { membershipsApi } from '../api/memberships.api';
 import type { Membership } from '../api/types';
 import Button from '../components/ui/Button';
@@ -8,6 +8,7 @@ import Input from '../components/ui/Input';
 import PageHeader from '../components/ui/PageHeader';
 import Pagination from '../components/ui/Pagination';
 import { useDebounce } from '../hooks/useDebounce';
+import MembershipFormModal from './MembershipFormModal';
 import styles from './MembershipsPage.module.css';
 
 const PAGE_SIZE = 10;
@@ -20,49 +21,76 @@ function MembershipsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingMembership, setEditingMembership] = useState<Membership | undefined>(undefined);
+
   const debouncedSearch = useDebounce(search, 300);
 
-  // Dohvati listu pri promjeni stranice ili pretrage
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await membershipsApi.list({
+        search: debouncedSearch || undefined,
+        page,
+        limit: PAGE_SIZE,
+      });
+      setMemberships(result.data);
+      setTotal(result.total);
+    } catch (err) {
+      const message =
+        (err as { message?: string })?.message ?? 'Greška pri dohvaćanju';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [debouncedSearch, page]);
+
   useEffect(() => {
     let cancelled = false;
-
-    const loadData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const result = await membershipsApi.list({
-          search: debouncedSearch || undefined,
-          page,
-          limit: PAGE_SIZE,
-        });
-        if (!cancelled) {
-          setMemberships(result.data);
-          setTotal(result.total);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          const message =
-            err instanceof Error ? err.message : (err as { message?: string })?.message ?? 'Greška pri dohvaćanju';
-          setError(message);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadData();
-
+    (async () => {
+      if (!cancelled) await loadData();
+    })();
     return () => {
       cancelled = true;
     };
-  }, [page, debouncedSearch]);
+  }, [loadData]);
 
-  // Resetiraj na prvu stranicu kad korisnik pretražuje
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch]);
+
+  const handleCreate = () => {
+    setEditingMembership(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (membership: Membership) => {
+    setEditingMembership(membership);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (membership: Membership) => {
+    const confirmed = window.confirm(
+      `Jeste li sigurni da želite obrisati članstvo "${membership.name}"?`
+    );
+    if (!confirmed) return;
+
+    try {
+      await membershipsApi.remove(membership.membershipId);
+      alert('Članstvo je obrisano');
+      loadData();
+    } catch (err) {
+      const message =
+        (err as { message?: string })?.message ?? 'Greška pri brisanju';
+      alert(`Greška: ${message}`);
+    }
+  };
+
+  const handleSaved = () => {
+    alert('Spremljeno');
+    loadData();
+  };
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -85,6 +113,28 @@ function MembershipsPage() {
       width: '120px',
       align: 'right',
     },
+    {
+      key: 'actions',
+      header: '',
+      width: '200px',
+      align: 'right',
+      render: (row) => (
+        <div
+          style={{
+            display: 'flex',
+            gap: 'var(--space-2)',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <Button variant="secondary" onClick={() => handleEdit(row)}>
+            Uredi
+          </Button>
+          <Button variant="danger" onClick={() => handleDelete(row)}>
+            Obriši
+          </Button>
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -92,11 +142,7 @@ function MembershipsPage() {
       <PageHeader
         title="Članstva"
         subtitle="Šifrarnik tipova članstva"
-        actions={
-          <Button onClick={() => alert('tbd')}>
-            Novo članstvo
-          </Button>
-        }
+        actions={<Button onClick={handleCreate}>Novo članstvo</Button>}
       />
 
       <div className={styles.filters}>
@@ -121,6 +167,13 @@ function MembershipsPage() {
         page={page}
         totalPages={totalPages}
         onPageChange={setPage}
+      />
+
+      <MembershipFormModal
+        isOpen={isModalOpen}
+        membership={editingMembership}
+        onClose={() => setIsModalOpen(false)}
+        onSaved={handleSaved}
       />
     </div>
   );
