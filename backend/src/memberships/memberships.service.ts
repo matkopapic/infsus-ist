@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { currentDateString } from '../common/utils/current-date-string';
 import { CreateMembershipDto } from './dto/create-membership.dto';
 import { ListMembershipsQueryDto } from './dto/list-memberships-query.dto';
 import { UpdateMembershipDto } from './dto/update-membership.dto';
@@ -51,17 +50,14 @@ export class MembershipsService {
   }
 
   async remove(id: string) {
-    await this.findOne(id);
+  await this.findOne(id);
 
-    const usageCount = await this.membershipsRepository.countActiveUsages(
-      id,
-      currentDateString(),
-    );
+  const usageCount = await this.membershipsRepository.countUsages(id);
 
-    if (usageCount > 0) {
-      throw MembershipsErrors.membershipInUse();
-    }
-
-    await this.membershipsRepository.deleteById(id);
+  if (usageCount > 0) {
+    throw MembershipsErrors.membershipInUse();
   }
+
+  await this.membershipsRepository.deleteById(id);
+}
 }
