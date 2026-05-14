@@ -98,27 +98,27 @@ export class ReservationsRepository {
   }
 
   async hasOverlappingReservation(
-    memberId: string,
-    trainingId: string,
-    trainingTime: Date,
-    durationInMinutes: number,
-  ) {
-    return this.reservationsRepository
-      .createQueryBuilder('reservation')
-      .innerJoin('reservation.training', 'training')
-      .innerJoin('reservation.member', 'member')
-      .where('member.member_id = :memberId', { memberId })
-      .andWhere('training.training_id != :trainingId', { trainingId })
-      .andWhere(
-        `training.training_time < (:trainingTime + make_interval(mins => :durationInMinutes))
-         AND (training.training_time + make_interval(mins => training.duration_in_minutes)) > :trainingTime`,
-        {
-          trainingTime,
-          durationInMinutes,
-        },
-      )
-      .getExists();
-  }
+  memberId: string,
+  trainingId: string,
+  trainingTime: Date,
+  durationInMinutes: number,
+) {
+  return this.reservationsRepository
+    .createQueryBuilder('reservation')
+    .innerJoin('reservation.training', 'training')
+    .innerJoin('reservation.member', 'member')
+    .where('member.member_id = :memberId', { memberId })
+    .andWhere('training.training_id != :trainingId', { trainingId })
+    .andWhere(
+      `training.training_time < (:trainingTime::timestamp + make_interval(mins => :durationInMinutes))
+       AND (training.training_time + make_interval(mins => training.duration_in_minutes)) > :trainingTime::timestamp`,
+      {
+        trainingTime: trainingTime.toISOString(),
+        durationInMinutes,
+      },
+    )
+    .getExists();
+}
 
   async hasActiveMembership(memberId: string, currentDate: string) {
     return this.memberMembershipsRepository
