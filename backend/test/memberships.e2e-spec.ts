@@ -1,37 +1,40 @@
-import { ConflictException, INestApplication } from '@nestjs/common';
+import { INestApplication, RequestMethod, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { MembershipsController } from '../src/memberships/memberships.controller';
-import { MembershipsMapper } from '../src/memberships/memberships.mapper';
-import { MembershipsService } from '../src/memberships/memberships.service';
+import { AppModule } from '../src/app.module';
+import {
+  applyTestDatabaseEnv,
+  ensureTestDatabaseExists,
+  resetTestDatabase,
+} from './utils/postgres-test-db';
 
 describe('Memberships module (e2e)', () => {
   let app: INestApplication;
-  let service: jest.Mocked<MembershipsService>;
+
+  beforeAll(async () => {
+    applyTestDatabaseEnv();
+    await ensureTestDatabaseExists();
+  });
 
   beforeEach(async () => {
+    await resetTestDatabase();
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      controllers: [MembershipsController],
-      providers: [
-        MembershipsMapper,
-        {
-          provide: MembershipsService,
-          useValue: {
-            findAll: jest.fn(),
-            findOne: jest.fn(),
-            create: jest.fn(),
-            update: jest.fn(),
-            remove: jest.fn(),
-          },
-        },
-      ],
+      imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api/v1');
+    app.setGlobalPrefix('api/v1', {
+      exclude: [{ path: '/api', method: RequestMethod.GET }],
+    });
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await app.init();
-
-    service = moduleFixture.get(MembershipsService);
   });
 
   afterEach(async () => {
@@ -39,39 +42,29 @@ describe('Memberships module (e2e)', () => {
   });
 
   it('GET /api/v1/memberships returns the mapped list payload', async () => {
-    service.findAll.mockResolvedValue({
-      data: [
-        {
-          membershipId: 'membership-1',
+    const response = await request(app.getHttpServer())
+      .get('/api/v1/memberships')
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.total).toBe(2);
+        expect(body.data).toHaveLength(2);
+        expect(body.data[0]).toMatchObject({
           name: 'Standard 1 month',
           durationInDays: 30,
           price: 30,
-        },
-      ],
-      total: 1,
-    } as never);
-
-    await request(app.getHttpServer())
-      .get('/api/v1/memberships')
-      .expect(200)
-      .expect({
-        data: [
-          {
-            membershipId: 'membership-1',
-            name: 'Standard 1 month',
-            durationInDays: 30,
-            price: 30,
-          },
-        ],
-        total: 1,
+        });
+        expect(body.data[1]).toMatchObject({
+          name: 'Standard 1 year',
+          durationInDays: 365,
+          price: 270,
+        });
       });
+
+    expect(response.body.data[0].membershipId).toBeTruthy();
+    expect(response.body.data[1].membershipId).toBeTruthy();
   });
 
   it('POST /api/v1/memberships returns 409 for duplicate membership names', async () => {
-    service.create.mockRejectedValue(
-      new ConflictException('Članstvo s tim nazivom već postoji'),
-    );
-
     await request(app.getHttpServer())
       .post('/api/v1/memberships')
       .send({ name: 'Standard 1 month', durationInDays: 30, price: 30 })
