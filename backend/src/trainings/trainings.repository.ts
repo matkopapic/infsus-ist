@@ -99,32 +99,32 @@ export class TrainingsRepository {
   }
 
   async hasTrainerOverlap(
-    trainerId: string,
-    trainingTime: Date,
-    durationInMinutes: number,
-    excludedTrainingId?: string,
-  ) {
-    const queryBuilder = this.trainingsRepository
-      .createQueryBuilder('training')
-      .innerJoin('training.trainer', 'trainer')
-      .where('trainer.trainer_id = :trainerId', { trainerId })
-      .andWhere(
-        `training.training_time < (:trainingTime + make_interval(mins => :durationInMinutes))
-         AND (training.training_time + make_interval(mins => training.duration_in_minutes)) > :trainingTime`,
-        {
-          trainingTime,
-          durationInMinutes,
-        },
-      );
+  trainerId: string,
+  trainingTime: Date,
+  durationInMinutes: number,
+  excludedTrainingId?: string,
+) {
+  const queryBuilder = this.trainingsRepository
+    .createQueryBuilder('training')
+    .innerJoin('training.trainer', 'trainer')
+    .where('trainer.trainer_id = :trainerId', { trainerId })
+    .andWhere(
+      `training.training_time < (:trainingTime::timestamp + make_interval(mins => :durationInMinutes))
+       AND (training.training_time + make_interval(mins => training.duration_in_minutes)) > :trainingTime::timestamp`,
+      {
+        trainingTime: trainingTime.toISOString(),
+        durationInMinutes,
+      },
+    );
 
-    if (excludedTrainingId) {
-      queryBuilder.andWhere('training.training_id != :excludedTrainingId', {
-        excludedTrainingId,
-      });
-    }
-
-    return queryBuilder.getExists();
+  if (excludedTrainingId) {
+    queryBuilder.andWhere('training.training_id != :excludedTrainingId', {
+      excludedTrainingId,
+    });
   }
+
+  return queryBuilder.getExists();
+}
 
   deleteById(trainingId: string) {
     return this.trainingsRepository.delete(trainingId);
