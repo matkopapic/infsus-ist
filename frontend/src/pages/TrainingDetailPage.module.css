@@ -1,0 +1,127 @@
+.backLink {
+  display: inline-block;
+  margin-bottom: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  transition: color var(--transition-fast);
+}
+
+.backLink:hover {
+  color: var(--color-primary);
+}
+
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.infoLabel {
+  font-size: var(--font-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.infoValue {
+  font-size: var(--font-base);
+  color: var(--color-text);
+}
+
+.statusOpen {
+  color: var(--color-success);
+  font-weight: 500;
+}
+
+.statusFull {
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+.statusPast {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.capacitySection {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.capacityHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.capacityNumbers {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.progressBar {
+  height: 10px;
+  background-color: var(--color-bg);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: var(--color-primary);
+  transition: width var(--transition-fast);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.reservationsSection {
+  margin-top: var(--space-6);
+}
+
+.reservationsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.sectionTitle {
+  font-size: var(--font-xl);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.errorBanner {
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  background-color: var(--color-danger-soft);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  color: var(--color-danger);
+  font-size: var(--font-sm);
+}
