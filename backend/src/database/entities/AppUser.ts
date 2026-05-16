@@ -24,7 +24,7 @@ export class AppUser {
   @Column("character varying", { name: "email", unique: true, length: 255 })
   email: string;
 
-  @Column("timestamp without time zone", { name: "created_at" })
+  @Column("timestamp with time zone", { name: "created_at" })
   createdAt: Date;
 
   @OneToOne(() => Administrator, (administrator) => administrator.admin)

@@ -9,11 +9,11 @@ export class MemberMembership {
   @Column("integer", { name: "status" })
   status: number;
 
-  @Column("integer", { name: "start_date" })
-  startDate: number;
+  @Column("date", { name: "start_date" })
+  startDate: string;
 
-  @Column("integer", { name: "end_date" })
-  endDate: number;
+  @Column("date", { name: "end_date" })
+  endDate: string;
 
   @Column("uuid", {
     primary: true,

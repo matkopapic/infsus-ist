@@ -4,7 +4,7 @@ import { Administrator } from "./Administrator";
 @Index("report_pkey", ["reportId"], { unique: true })
 @Entity("report")
 export class Report {
-  @Column("timestamp without time zone", { name: "report_time" })
+  @Column("timestamp with time zone", { name: "report_time" })
   reportTime: Date;
 
   @Column("character varying", { name: "report_file", length: 255 })
