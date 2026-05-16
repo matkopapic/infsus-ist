@@ -63,7 +63,12 @@ export class ReservationsService {
       training,
     });
 
-    return this.reservationsRepository.save(reservation);
+    const savedReservation = await this.reservationsRepository.save(reservation);
+    const hydratedReservation = await this.reservationsRepository.findByIdWithRelations(
+      savedReservation.reservationId,
+    );
+
+    return hydratedReservation ?? savedReservation;
   }
 
   async remove(trainingId: string, reservationId: string) {

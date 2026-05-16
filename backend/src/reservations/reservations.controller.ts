@@ -24,11 +24,15 @@ import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { ReservationListResponseDto } from './dto/reservation-list-response.dto';
 import { ReservationResponseDto } from './dto/reservation-response.dto';
+import { ReservationsMapper } from './reservations.mapper';
 
 @ApiTags('Reservations')
 @Controller('trainings/:trainingId/reservations')
 export class ReservationsController {
-  constructor(private readonly reservationsService: ReservationsService) {}
+  constructor(
+    private readonly reservationsService: ReservationsService,
+    private readonly reservationsMapper: ReservationsMapper,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'List reservations for a training' })
@@ -36,8 +40,9 @@ export class ReservationsController {
   @ApiOkResponse({ type: ReservationListResponseDto })
   @ApiBadRequestResponse({ type: ApiErrorResponseDto })
   @ApiNotFoundResponse({ type: ApiErrorResponseDto })
-  findAll(@Param('trainingId', new ParseUUIDPipe()) trainingId: string) {
-    return this.reservationsService.findAll(trainingId);
+  async findAll(@Param('trainingId', new ParseUUIDPipe()) trainingId: string) {
+    const result = await this.reservationsService.findAll(trainingId);
+    return this.reservationsMapper.toListResponseDto(result.data, result.total);
   }
 
   @Post()
@@ -47,11 +52,12 @@ export class ReservationsController {
   @ApiBadRequestResponse({ type: ApiErrorResponseDto })
   @ApiNotFoundResponse({ type: ApiErrorResponseDto })
   @ApiConflictResponse({ type: ApiErrorResponseDto })
-  create(
+  async create(
     @Param('trainingId', new ParseUUIDPipe()) trainingId: string,
     @Body() body: CreateReservationDto,
   ) {
-    return this.reservationsService.create(trainingId, body);
+    const reservation = await this.reservationsService.create(trainingId, body);
+    return this.reservationsMapper.toResponseDto(reservation);
   }
 
   @Delete(':reservationId')

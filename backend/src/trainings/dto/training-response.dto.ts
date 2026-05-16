@@ -11,8 +11,8 @@ export class TrainingResponseDto {
   @ApiProperty({ example: '2026-06-15T18:00:00Z' })
   trainingTime: string;
 
-  @ApiProperty({ example: 60 })
-  durationInMinutes: number;
+  @ApiProperty({ example: '60 minutes' })
+  duration: string;
 
   @ApiProperty({ example: 15 })
   capacity: number;
