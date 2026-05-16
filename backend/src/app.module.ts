@@ -4,6 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
+import { MembersModule } from './members/members.module';
+import { MembershipsModule } from './memberships/memberships.module';
+import { ReservationsModule } from './reservations/reservations.module';
+import { TrainersModule } from './trainers/trainers.module';
+import { TrainingsModule } from './trainings/trainings.module';
 
 const isEnabled = (value?: string) => value === 'true';
 
@@ -38,6 +43,11 @@ const isEnabled = (value?: string) => value === 'true';
       },
     }),
     DatabaseModule,
+    MembershipsModule,
+    TrainingsModule,
+    ReservationsModule,
+    TrainersModule,
+    MembersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
