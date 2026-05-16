@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { DataSource } from 'typeorm';
+import { AppUser } from './entities/AppUser';
 
 @Injectable()
 export class DatabaseService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    @InjectRepository(AppUser)
+    private readonly appUserRepository: Repository<AppUser>,
+  ) {}
 
   async testConnection() {
     const [result] = await this.dataSource.query(
@@ -16,13 +23,7 @@ export class DatabaseService {
     };
   }
 
-  async getUsers() {
-      const result = await this.dataSource.query(
-          'SELECT * from app_user',
-      );
-
-      return {
-          ...result,
-      };
+  getUsers(): Promise<AppUser[]> {
+    return this.appUserRepository.find();
   }
 }
