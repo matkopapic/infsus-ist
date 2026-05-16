@@ -4,25 +4,17 @@ import type { Membership } from '../api/types';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
+import {
+  validateMembershipForm,
+  type MembershipFormErrors as FormErrors,
+  type MembershipFormValues as FormValues,
+} from './membershipValidation';
 
 interface MembershipFormModalProps {
   isOpen: boolean;
   membership?: Membership;
   onClose: () => void;
   onSaved: () => void;
-}
-
-interface FormValues {
-  name: string;
-  durationInDays: string;
-  price: string;
-}
-
-interface FormErrors {
-  name?: string;
-  durationInDays?: string;
-  price?: string;
-  general?: string;
 }
 
 const EMPTY_VALUES: FormValues = {
@@ -59,28 +51,7 @@ function MembershipFormModal({
   }, [isOpen, membership]);
 
   const validate = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!values.name.trim()) {
-      newErrors.name = 'Naziv je obavezan';
-    } else if (values.name.length > 255) {
-      newErrors.name = 'Naziv smije imati najviše 255 znakova';
-    }
-
-    const duration = Number(values.durationInDays);
-    if (!values.durationInDays.trim()) {
-      newErrors.durationInDays = 'Trajanje je obavezno';
-    } else if (!Number.isInteger(duration) || duration < 1) {
-      newErrors.durationInDays = 'Trajanje mora biti cijeli broj veći od 0';
-    }
-
-    const price = Number(values.price);
-    if (!values.price.trim()) {
-      newErrors.price = 'Cijena je obavezna';
-    } else if (Number.isNaN(price) || price <= 0) {
-      newErrors.price = 'Cijena mora biti veća od 0';
-    }
-
+    const newErrors = validateMembershipForm(values);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

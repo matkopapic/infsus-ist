@@ -108,7 +108,9 @@ function TrainingsListPage() {
         const isFull = row.availableSlots === 0;
         return (
           <span className={isFull ? styles.full : ''}>
-            {taken} / {row.capacity}
+            <span className={styles.capacityValue}>
+              {taken} / {row.capacity}
+            </span>
             {isFull && <span className={styles.fullBadge}>POPUNJENO</span>}
           </span>
         );

@@ -20,7 +20,7 @@ describe('MembershipsService', () => {
             create: jest.fn(),
             save: jest.fn(),
             merge: jest.fn(),
-            countActiveUsages: jest.fn(),
+            countUsages: jest.fn(),
             deleteById: jest.fn(),
           },
         },
@@ -49,7 +49,7 @@ describe('MembershipsService', () => {
 
   it('throws conflict when deleting a membership that is in active use', async () => {
     repository.findById.mockResolvedValue({ membershipId: '1' } as never);
-    repository.countActiveUsages.mockResolvedValue(2 as never);
+    repository.countUsages.mockResolvedValue(2 as never);
 
     await expect(service.remove('1')).rejects.toBeInstanceOf(ConflictException);
     expect(repository.deleteById).not.toHaveBeenCalled();

@@ -78,32 +78,19 @@ describe('MembershipsRepository', () => {
     expect(result).toEqual({ data: [{ membershipId: '1' }], total: 1 });
   });
 
-  it('builds the active usage count query', async () => {
+  it('builds the usage count query', async () => {
     const queryBuilder = createQueryBuilderMock();
     queryBuilder.getCount.mockResolvedValue(3);
     memberMembershipsRepository.createQueryBuilder.mockReturnValue(queryBuilder as never);
 
-    const result = await repository.countActiveUsages('membership-1', '2026-05-17');
+    const result = await repository.countUsages('membership-1');
 
     expect(memberMembershipsRepository.createQueryBuilder).toHaveBeenCalledWith(
       'memberMembership',
     );
-    expect(queryBuilder.innerJoin).toHaveBeenCalledWith('memberMembership.payment', 'payment');
     expect(queryBuilder.where).toHaveBeenCalledWith(
-      'memberMembership.membership_id = :membershipId',
+      'memberMembership.membership = :membershipId',
       { membershipId: 'membership-1' },
-    );
-    expect(queryBuilder.andWhere).toHaveBeenCalledWith(
-      'memberMembership.start_date <= :currentDate',
-      { currentDate: '2026-05-17' },
-    );
-    expect(queryBuilder.andWhere).toHaveBeenCalledWith(
-      'memberMembership.end_date >= :currentDate',
-      { currentDate: '2026-05-17' },
-    );
-    expect(queryBuilder.andWhere).toHaveBeenCalledWith(
-      'LOWER(payment.status) = :paidStatus',
-      { paidStatus: 'paid' },
     );
     expect(result).toBe(3);
   });
