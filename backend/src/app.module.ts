@@ -4,6 +4,20 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
+import { Administrator } from './database/entities/Administrator';
+import { AppUser } from './database/entities/AppUser';
+import { Attendance } from './database/entities/Attendance';
+import { Equipment } from './database/entities/Equipment';
+import { GymMember } from './database/entities/GymMember';
+import { MemberMembership } from './database/entities/MemberMembership';
+import { Membership } from './database/entities/Membership';
+import { Payment } from './database/entities/Payment';
+import { Perk } from './database/entities/Perk';
+import { Report } from './database/entities/Report';
+import { Reservation } from './database/entities/Reservation';
+import { Service } from './database/entities/Service';
+import { Trainer } from './database/entities/Trainer';
+import { Training } from './database/entities/Training';
 import { MembersModule } from './members/members.module';
 import { MembershipsModule } from './memberships/memberships.module';
 import { ReservationsModule } from './reservations/reservations.module';
@@ -33,6 +47,22 @@ const isEnabled = (value?: string) => value === 'true';
           password: configService.get<string>('DB_PASSWORD'),
           database: configService.get<string>('DB_NAME'),
           autoLoadEntities: true,
+          entities: [
+            Administrator,
+            AppUser,
+            Attendance,
+            Equipment,
+            GymMember,
+            MemberMembership,
+            Membership,
+            Payment,
+            Perk,
+            Report,
+            Reservation,
+            Service,
+            Trainer,
+            Training,
+          ],
           synchronize: false,
           ssl: dbSsl
             ? {
