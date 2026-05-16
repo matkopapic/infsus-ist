@@ -7,6 +7,7 @@ import Button from '../components/ui/Button';
 import DataTable from '../components/ui/DataTable';
 import type { Column } from '../components/ui/DataTable';
 import PageHeader from '../components/ui/PageHeader';
+import ReservationFormModal from './ReservationFormModal';
 import styles from './TrainingDetailPage.module.css';
 
 function TrainingDetailPage() {
@@ -18,6 +19,8 @@ function TrainingDetailPage() {
   const [isLoadingTraining, setIsLoadingTraining] = useState(true);
   const [isLoadingReservations, setIsLoadingReservations] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
 
   const loadTraining = useCallback(async () => {
     if (!id) return;
@@ -41,12 +44,16 @@ function TrainingDetailPage() {
       const result = await reservationsApi.listByTraining(id);
       setReservations(result.data);
     } catch {
-      // Rezervacije nisu kritične, ne ruše stranicu
       setReservations([]);
     } finally {
       setIsLoadingReservations(false);
     }
   }, [id]);
+
+  useEffect(() => {
+    loadTraining();
+    loadReservations();
+  }, [loadTraining, loadReservations]);
 
   const handleDelete = async () => {
     if (!training) return;
@@ -67,10 +74,32 @@ function TrainingDetailPage() {
     }
   };
 
-  useEffect(() => {
-    loadTraining();
+  const handleCancelReservation = async (reservation: Reservation) => {
+    if (!training) return;
+
+    const confirmed = window.confirm(
+      `Otkazati rezervaciju za člana "${reservation.member.name}"?`
+    );
+    if (!confirmed) return;
+
+    try {
+      await reservationsApi.remove(training.trainingId, reservation.reservationId);
+      alert('Rezervacija je otkazana');
+      // Osvježi i rezervacije i trening (zbog availableSlots)
+      loadReservations();
+      loadTraining();
+    } catch (err) {
+      const message =
+        (err as { message?: string })?.message ?? 'Greška pri otkazivanju';
+      alert(`Greška: ${message}`);
+    }
+  };
+
+  const handleReservationSaved = () => {
+    alert('Rezervacija je stvorena');
     loadReservations();
-  }, [loadTraining, loadReservations]);
+    loadTraining();
+  };
 
   if (isLoadingTraining) {
     return (
@@ -109,11 +138,34 @@ function TrainingDetailPage() {
   const isFull = training.availableSlots === 0;
   const isPast = new Date(training.trainingTime).getTime() < Date.now();
 
+  const canAddReservation = !isPast && !isFull;
+  const canCancelReservations = !isPast;
+
   const reservationColumns: Column<Reservation>[] = [
     {
       key: 'name',
       header: 'Član',
       render: (row) => row.member.name,
+    },
+    {
+      key: 'actions',
+      header: '',
+      width: '150px',
+      align: 'right',
+      render: (row) => (
+        <Button
+          variant="danger"
+          onClick={() => handleCancelReservation(row)}
+          disabled={!canCancelReservations}
+          title={
+            !canCancelReservations
+              ? 'Trening je već započeo'
+              : undefined
+          }
+        >
+          Otkaži
+        </Button>
+      ),
     },
   ];
 
@@ -193,7 +245,19 @@ function TrainingDetailPage() {
           <h2 className={styles.sectionTitle}>
             Rezervacije ({reservations.length} / {training.capacity})
           </h2>
-          <Button disabled>Nova rezervacija</Button>
+          <Button
+            onClick={() => setIsReservationModalOpen(true)}
+            disabled={!canAddReservation}
+            title={
+              isPast
+                ? 'Trening je već započeo'
+                : isFull
+                ? 'Trening je popunjen'
+                : undefined
+            }
+          >
+            Nova rezervacija
+          </Button>
         </div>
 
         <DataTable
@@ -204,6 +268,14 @@ function TrainingDetailPage() {
           emptyMessage="Nema rezervacija za ovaj trening"
         />
       </section>
+
+      <ReservationFormModal
+        isOpen={isReservationModalOpen}
+        trainingId={training.trainingId}
+        trainingName={training.name}
+        onClose={() => setIsReservationModalOpen(false)}
+        onSaved={handleReservationSaved}
+      />
     </div>
   );
 }
