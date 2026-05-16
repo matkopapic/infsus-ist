@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { trainingsApi } from '../api/trainings.api';
 import TrainerSelect from '../components/forms/TrainerSelect';
@@ -9,7 +9,7 @@ import styles from './TrainingFormPage.module.css';
 
 interface FormValues {
   name: string;
-  trainingTime: string; // datetime-local format: YYYY-MM-DDTHH:mm
+  trainingTime: string;
   durationInMinutes: string;
   capacity: string;
   trainerId: string;
@@ -32,6 +32,15 @@ const EMPTY_VALUES: FormValues = {
   trainerId: '',
 };
 
+function toLocalInputFormat(iso: string): string {
+  const date = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  );
+}
+
 function TrainingFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -40,6 +49,46 @@ function TrainingFormPage() {
   const [values, setValues] = useState<FormValues>(EMPTY_VALUES);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(isEdit);
+
+  useEffect(() => {
+    if (!id) return;
+
+    let cancelled = false;
+
+    const loadTraining = async () => {
+      setIsLoading(true);
+      try {
+        const training = await trainingsApi.getById(id);
+        if (!cancelled) {
+          setValues({
+            name: training.name,
+            trainingTime: toLocalInputFormat(training.trainingTime),
+            durationInMinutes: String(training.durationInMinutes),
+            capacity: String(training.capacity),
+            trainerId: training.trainer.trainerId,
+          });
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const message =
+            (err as { message?: string })?.message ??
+            'Greška pri dohvaćanju treninga';
+          setErrors({ general: message });
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadTraining();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   const updateField = (field: keyof FormValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
@@ -103,9 +152,15 @@ function TrainingFormPage() {
     };
 
     try {
-      const training = await trainingsApi.create(payload);
-      alert('Trening je stvoren');
-      navigate(`/trainings/${training.trainingId}`);
+      if (isEdit && id) {
+        await trainingsApi.update(id, payload);
+        alert('Trening je ažuriran');
+        navigate(`/trainings/${id}`);
+      } else {
+        const training = await trainingsApi.create(payload);
+        alert('Trening je stvoren');
+        navigate(`/trainings/${training.trainingId}`);
+      }
     } catch (err) {
       const message =
         (err as { message?: string })?.message ?? 'Greška pri spremanju';
@@ -113,6 +168,23 @@ function TrainingFormPage() {
       setIsSubmitting(false);
     }
   };
+
+  const handleCancel = () => {
+    if (isEdit && id) {
+      navigate(`/trainings/${id}`);
+    } else {
+      navigate('/trainings');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeader title="Uređivanje treninga" />
+        <p style={{ color: 'var(--color-text-muted)' }}>Učitavanje...</p>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -181,7 +253,7 @@ function TrainingFormPage() {
             <TrainerSelect
               label="Trener"
               value={values.trainerId}
-              onChange={(id) => updateField('trainerId', id)}
+              onChange={(trainerId) => updateField('trainerId', trainerId)}
               error={errors.trainerId}
               disabled={isSubmitting}
               includeEmptyOption
@@ -193,7 +265,7 @@ function TrainingFormPage() {
         <div className={styles.actions}>
           <Button
             variant="secondary"
-            onClick={() => navigate('/trainings')}
+            onClick={handleCancel}
             disabled={isSubmitting}
           >
             Odustani

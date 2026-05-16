@@ -48,6 +48,25 @@ function TrainingDetailPage() {
     }
   }, [id]);
 
+  const handleDelete = async () => {
+    if (!training) return;
+
+    const confirmed = window.confirm(
+      `Jeste li sigurni da želite obrisati trening "${training.name}"?`
+    );
+    if (!confirmed) return;
+
+    try {
+      await trainingsApi.remove(training.trainingId);
+      alert('Trening je obrisan');
+      navigate('/trainings');
+    } catch (err) {
+      const message =
+        (err as { message?: string })?.message ?? 'Greška pri brisanju';
+      alert(`Greška: ${message}`);
+    }
+  };
+
   useEffect(() => {
     loadTraining();
     loadReservations();
@@ -163,7 +182,7 @@ function TrainingDetailPage() {
           >
             Uredi
           </Button>
-          <Button variant="danger" disabled>
+          <Button variant="danger" onClick={handleDelete}>
             Obriši
           </Button>
         </div>
