@@ -12,7 +12,7 @@ export class TrainingsMapper {
       trainingId: training.trainingId,
       name: training.name,
       trainingTime: training.trainingTime.toISOString(),
-      duration: `${training.durationInMinutes} minutes`,
+      durationInMinutes: training.durationInMinutes,
       capacity: training.capacity,
       availableSlots: training.availableSlots,
       trainer: {

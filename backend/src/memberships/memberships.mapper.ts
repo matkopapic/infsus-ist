@@ -9,7 +9,7 @@ export class MembershipsMapper {
     return {
       membershipId: membership.membershipId,
       name: membership.name,
-      duration: `${membership.durationInDays} days`,
+      durationInDays: membership.durationInDays,
       price: membership.price,
     };
   }
