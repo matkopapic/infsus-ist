@@ -21,12 +21,12 @@ Example:
 
 ```env
 PORT=5000
-DB_HOST=localhost
+DB_HOST=dpg-d8493k0js32c739mhusg-a.frankfurt-postgres.render.com
 DB_PORT=5432
 DB_NAME=infsus_ist
-DB_USERNAME=postgres
-DB_PASSWORD=
-DB_SSL=false
+DB_USERNAME=infsus_ist_user
+DB_PASSWORD=S7nM9eAxlMADCcwcnzU5mq1oHtjH7MQF
+DB_SSL=true
 DB_SSL_REJECT_UNAUTHORIZED=false
 ```
 
